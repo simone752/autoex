@@ -2,6 +2,7 @@ ffmpeg-python
 numpy  # Add this line
 pydub
 cryptography
+Pillow
 google-auth-oauthlib
 google-auth-httplib2
 google-api-python-client
