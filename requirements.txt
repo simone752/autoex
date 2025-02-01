@@ -1,6 +1,8 @@
 ffmpeg-python
+numpy  # Add this line
 pydub
 cryptography
 google-auth-oauthlib
 google-auth-httplib2
 google-api-python-client
+
