@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 * * * *'  # Runs every hour (adjust as needed)
+    - cron: '0 * * * *'  # Runs every hour
 
 jobs:
   build:
@@ -18,21 +18,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Change if needed
+          python-version: '3.9'  # Change to '3.10' or '3.11' if needed
 
-      - name: Upgrade pip and install system dependencies
-        run: |
-          python -m pip install --upgrade pip
-          sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
 
       - name: Install dependencies
         run: pip install --no-cache-dir -r requirements.txt
 
-      - name: Force install moviepy
-        run: pip install --no-cache-dir moviepy
+      - name: Verify FFmpeg installation
+        run: ffmpeg -version
 
       - name: Debug installed packages
-        run: pip list | grep moviepy || echo "moviepy not found!"
+        run: pip list
 
       - name: Run video generation script
         run: python generate_video.py
