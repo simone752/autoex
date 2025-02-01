@@ -1,64 +1,119 @@
 import os
+import subprocess
+import wave
 import random
-import datetime
 import numpy as np
-import ffmpeg
-from pydub.generators import WhiteNoise
-from cryptography.fernet import Fernet
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 
-# Directory to store generated videos
-os.makedirs("generated_videos", exist_ok=True)
+# === CONFIGURATION PARAMETERS ===
+num_segments = 20           # Total seconds (segments) of the video
+segment_duration = 1        # Duration per segment in seconds
+output_fps = 24             # Final output frame rate
+width, height = 640, 480     # Video resolution
+sample_rate = 44100         # Audio sample rate in Hz
 
-# Generate a random color image (as video background)
-def create_random_video(output_path, duration=10, width=640, height=480, fps=24):
-    # Generate a random solid color
-    color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-    
-    # Create a blank image
-    img = Image.new("RGB", (width, height), color)
-    img_path = "temp_frame.png"
-    img.save(img_path)
+# === DIRECTORIES AND FILENAMES ===
+frames_dir = "frames"
+os.makedirs(frames_dir, exist_ok=True)
+audio_filename = "temp_audio.wav"
+video_from_frames = "temp_video.mp4"
+final_video = "minimalistic_video.mp4"
 
-    # Generate white noise audio
-    audio = WhiteNoise().to_audio_segment(duration=duration * 1000)
-    audio.export("temp_audio.wav", format="wav")
+# === FRAME GENERATION (VISUALS) ===
+print("Generating frames...")
+for i in range(num_segments):
+    # Create a very dark background (to evoke an eerie feel)
+    bg_color = (random.randint(0, 40), random.randint(0, 40), random.randint(0, 40))
+    img = Image.new("RGB", (width, height), bg_color)
+    draw = ImageDraw.Draw(img)
 
-    # Create video from a single image using FFmpeg
-    ffmpeg.input(img_path, loop=1, framerate=fps, t=duration).output("temp_video.mp4", vcodec="libx264").run(overwrite_output=True)
+    # Draw a central rectangle reminiscent of Webdriver Torso but with a twist:
+    # The rectangle’s fill is a random neon-ish color that contrasts with the dark background.
+    margin = random.randint(50, 150)
+    rect_color = (random.randint(100, 255), random.randint(0, 100), random.randint(100, 255))
+    draw.rectangle([margin, margin, width - margin, height - margin], fill=rect_color)
 
-    # Combine video and audio
-    ffmpeg.input("temp_video.mp4").input("temp_audio.wav").output(output_path, vcodec="libx264", acodec="aac").run(overwrite_output=True)
+    # Add a few sporadic glitch-like lines
+    for _ in range(random.randint(2, 5)):
+        x0 = random.randint(0, width)
+        y0 = random.randint(0, height)
+        x1 = x0 + random.randint(-100, 100)
+        y1 = y0 + random.randint(-100, 100)
+        line_color = (random.randint(50, 255), random.randint(50, 255), random.randint(50, 255))
+        draw.line([x0, y0, x1, y1], fill=line_color, width=random.randint(1, 3))
 
-    # Clean up temp files
-    os.remove(img_path)
-    os.remove("temp_video.mp4")
-    os.remove("temp_audio.wav")
+    # Optionally apply a slight blur or noise effect
+    if random.random() < 0.5:
+        img = img.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.3, 1.5)))
 
-# Generate random encrypted title from Don Quixote quotes
-def generate_encrypted_title():
-    quotes = [
-        "In short, he became so absorbed in his books that he spent his nights reading from dusk till dawn.",
-        "Destiny guides our fortunes more favorably than we could have expected.",
-        "Time ripens all things; no man is born wise."
-    ]
-    selected_quote = random.choice(quotes)
+    # Save frame as "frame_000.png", "frame_001.png", etc.
+    frame_path = os.path.join(frames_dir, f"frame_{i:03d}.png")
+    img.save(frame_path)
 
-    # Encrypt the title
-    key = Fernet.generate_key()
-    cipher_suite = Fernet(key)
-    encrypted_text = cipher_suite.encrypt(selected_quote.encode()).decode()
-    
-    return encrypted_text
+# === AUDIO GENERATION (SOUND) ===
+print("Generating audio...")
+audio_segments = []
+for i in range(num_segments):
+    # Choose a base frequency (400-800 Hz) for a beep-like tone
+    base_freq = random.uniform(400, 800)
+    # Add frequency modulation for a vibrato effect
+    mod_freq = random.uniform(2, 7)      # modulation frequency in Hz
+    mod_index = random.uniform(5, 20)    # modulation depth
+    t = np.linspace(0, segment_duration, int(sample_rate * segment_duration), endpoint=False)
+    # Generate the modulated sine wave
+    sine_wave = np.sin(2 * np.pi * base_freq * t + mod_index * np.sin(2 * np.pi * mod_freq * t))
+    # Random overall amplitude variation (to add unpredictability)
+    sine_wave *= random.uniform(0.3, 0.7)
+    # Add a very light layer of white noise to create a glitchy texture
+    noise = np.random.normal(0, 0.05, sine_wave.shape)
+    segment_audio = sine_wave + noise
+    audio_segments.append(segment_audio)
 
-# Main function
-if __name__ == "__main__":
-    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    video_filename = f"generated_videos/video_{timestamp}.mp4"
+# Concatenate audio segments into one continuous array
+audio = np.concatenate(audio_segments)
+# Normalize audio to 16-bit PCM range
+audio = audio / np.max(np.abs(audio))
+audio_int16 = np.int16(audio * 32767)
 
-    # Create video
-    create_random_video(video_filename)
+# Write audio to a WAV file
+with wave.open(audio_filename, "w") as wav_file:
+    n_channels = 1
+    sampwidth = 2  # 16-bit PCM = 2 bytes
+    n_frames = len(audio_int16)
+    comptype = "NONE"
+    compname = "not compressed"
+    wav_file.setparams((n_channels, sampwidth, sample_rate, n_frames, comptype, compname))
+    wav_file.writeframes(audio_int16.tobytes())
 
-    # Generate encrypted title
-    title = generate_encrypted_title()
-    print(f"Generated video saved as {video_filename} with title: {title}")
+# === VIDEO ASSEMBLY VIA FFMPEG ===
+print("Creating video from frames...")
+# Build the ffmpeg command to convert frames to video.
+# -framerate 1 means each image is held for 1 second.
+# Then we set the output frame rate (-r) to output_fps (e.g. 24 fps) for smooth playback.
+ffmpeg_video_cmd = [
+    "ffmpeg",
+    "-y",  # Overwrite output file if exists
+    "-framerate", "1",
+    "-i", os.path.join(frames_dir, "frame_%03d.png"),
+    "-r", str(output_fps),
+    "-c:v", "libx264",
+    "-pix_fmt", "yuv420p",
+    video_from_frames
+]
+subprocess.run(ffmpeg_video_cmd, check=True)
+
+print("Combining video and audio into final video...")
+# Build the ffmpeg command to combine video and audio.
+ffmpeg_combine_cmd = [
+    "ffmpeg",
+    "-y",
+    "-i", video_from_frames,
+    "-i", audio_filename,
+    "-shortest",  # Ensure output ends when the shortest input ends
+    "-c:v", "copy",  # Copy video stream without re-encoding
+    "-c:a", "aac",   # Encode audio with AAC
+    final_video
+]
+subprocess.run(ffmpeg_combine_cmd, check=True)
+
+print("Video generated successfully:", final_video)
