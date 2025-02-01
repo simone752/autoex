@@ -1,29 +1,38 @@
 import os
 import random
-import string
-import moviepy.editor as mp
 import datetime
+import numpy as np
+import ffmpeg
 from pydub.generators import WhiteNoise
 from cryptography.fernet import Fernet
+from PIL import Image
 
 # Directory to store generated videos
 os.makedirs("generated_videos", exist_ok=True)
 
-# Generate random creepy visuals
-def create_random_video(output_path):
-    duration = random.randint(5, 15)  # video duration between 5 to 15 seconds
-    width, height = 640, 480
+# Generate a random color image (as video background)
+def create_random_video(output_path, duration=10, width=640, height=480, fps=24):
+    # Generate a random solid color
+    color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    
+    # Create a blank image
+    img = Image.new("RGB", (width, height), color)
+    img_path = "temp_frame.png"
+    img.save(img_path)
 
-    # Generate random colors frame by frame
-    frames = [mp.ColorClip(size=(width, height), color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), duration=0.1) for _ in range(duration * 10)]
-    video = mp.concatenate_videoclips(frames, method="compose")
-
-    # Add noise audio
+    # Generate white noise audio
     audio = WhiteNoise().to_audio_segment(duration=duration * 1000)
     audio.export("temp_audio.wav", format="wav")
-    video = video.set_audio(mp.AudioFileClip("temp_audio.wav"))
 
-    video.write_videofile(output_path, fps=24, codec='libx264')
+    # Create video from a single image using FFmpeg
+    ffmpeg.input(img_path, loop=1, framerate=fps, t=duration).output("temp_video.mp4", vcodec="libx264").run(overwrite_output=True)
+
+    # Combine video and audio
+    ffmpeg.input("temp_video.mp4").input("temp_audio.wav").output(output_path, vcodec="libx264", acodec="aac").run(overwrite_output=True)
+
+    # Clean up temp files
+    os.remove(img_path)
+    os.remove("temp_video.mp4")
     os.remove("temp_audio.wav")
 
 # Generate random encrypted title from Don Quixote quotes
@@ -42,14 +51,14 @@ def generate_encrypted_title():
     
     return encrypted_text
 
-# Main function to generate and upload video
+# Main function
 if __name__ == "__main__":
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     video_filename = f"generated_videos/video_{timestamp}.mp4"
-    
-    # Create the video
+
+    # Create video
     create_random_video(video_filename)
 
-    # Generate an encrypted title
+    # Generate encrypted title
     title = generate_encrypted_title()
     print(f"Generated video saved as {video_filename} with title: {title}")
