@@ -2,7 +2,7 @@ name: Generate and Upload Video
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/10 * * * *"  # Every 10 minutes
 
 jobs:
   build:
@@ -10,13 +10,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
+
     - name: Install dependencies
-      run: pip install -r requirements.txt
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+
     - name: Generate Video
-      run: python generate_video.py
+      run: |
+        source venv/bin/activate
+        python generate_video.py
+
     - name: Upload Video to YouTube
-      run: python upload_video.py
+      env:
+        CLIENT_SECRET_JSON: ${{ secrets.CLIENT_SECRET_JSON }}
+      run: |
+        source venv/bin/activate
+        python upload_video.py
