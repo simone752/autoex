@@ -1,42 +1,40 @@
-name: Auto Video Upload
+name: Build Video
 
 on:
   push:
-    branches:
-      - main
-  schedule:
-    - cron: '0 * * * *'  # Runs every hour
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Change to '3.10' or '3.11' if needed
+          python-version: '3.x'
 
-      - name: Update package lists
-        run: sudo apt-get update --fix-missing
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          echo "Installed packages:"
+          pip freeze
 
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg 
+        run: |
+          sudo apt-get update
+          sudo apt-get install ffmpeg -y
 
-      - name: Verify FFmpeg installation
-        run: ffmpeg -version
+      - name: Run Video Generation Script
+        run: python minimalistic_video.py
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-
-      - name: Install dependencies
-        run: pip install --no-cache-dir -r requirements.txt
-
-      - name: Debug installed packages
-        run: pip list
-
-      - name: Run video generation script
-        run: python generate_video.py
+      - name: Upload Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: minimalistic_video
+          path: minimalistic_video.mp4
