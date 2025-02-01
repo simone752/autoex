@@ -13,8 +13,9 @@ def generate_visuals(frame_count, width=640, height=480):
         # Sparse but bold elements
         if random.random() > 0.3:
             shape_type = random.choice(['line', 'rectangle', 'circle'])
-            x0, y0, x1, y1 = sorted([random.randint(0, width) for _ in range(2)]), sorted([random.randint(0, height) for _ in range(2)])
-            color = tuple(random.choices(range(256), k=3))
+x0, x1 = sorted([random.randint(0, width) for _ in range(2)])
+y0, y1 = sorted([random.randint(0, height) for _ in range(2)])            
+color = tuple(random.choices(range(256), k=3))
             
             if shape_type == 'line':
                 draw.line((x0[0], y0[0], x1[0], y1[0]), fill=color, width=random.randint(1, 5))
