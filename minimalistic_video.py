@@ -41,7 +41,7 @@ def generate_audio():
 def create_video():
     os.system(f"ffmpeg -y -framerate {FRAME_RATE} -i frames/frame_%04d.png -c:v libx264 -pix_fmt yuv420p video.mp4")
     os.system(f"ffmpeg -y -f s16le -ar {SAMPLE_RATE} -ac {CHANNELS} -i audio.raw -c:a aac -b:a 128k audio.mp4")
-    os.system("ffmpeg -y -i video.mp4 -i audio.mp4 -c:v copy -c:a aac final_video.mp4")
+    os.system("ffmpeg -y -i video.mp4 -i audio.mp4 -c:v copy -c:a aac extreme_video.mp4")
 
 generate_visuals()
 generate_audio()
