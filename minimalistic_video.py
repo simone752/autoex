@@ -1,10 +1,12 @@
 import os
-os.environ["SDL_AUDIODRIVER"] = "dummy"import random
 import numpy as np
 import cv2
 import pygame
 import ffmpeg
 from gtts import gTTS
+
+os.environ["SDL_AUDIODRIVER"] = "dummy"import random
+
 
 # Constants
 DURATION = random.randint(5, 15)  # Random video duration between 5 and 15 seconds
