@@ -1,61 +1,88 @@
 import os
+import random
+import pygame
 import numpy as np
 import cv2
-import pygame
 import ffmpeg
-from gtts import gTTS
+from PIL import Image, ImageDraw, ImageFont
 
-os.environ["SDL_AUDIODRIVER"] = "dummy"import random
+# Ensure pygame runs in headless environments
+os.environ["SDL_AUDIODRIVER"] = "dummy"
 
+# Video and audio parameters
+WIDTH, HEIGHT = random.choice([(640, 480), (800, 600), (1280, 720)])  # Random resolutions
+DURATION = random.uniform(5, 15)  # Random duration between 5-15 sec
+FPS = random.choice([15, 24, 30])  # Random frame rates
 
-# Constants
-DURATION = random.randint(5, 15)  # Random video duration between 5 and 15 seconds
-WIDTH, HEIGHT = random.choice([(640, 480), (1280, 720), (1920, 1080)])  # Random resolution
-FRAME_RATE = random.choice([24, 30, 60])  # Random frame rate
-FRAME_COUNT = DURATION * FRAME_RATE
+FRAME_COUNT = int(DURATION * FPS)
+COLOR_PALETTE = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(5)]
+WORDS = ["ERROR", "LOADING", "DATA", "VOID", "NULL", "SYSTEM", "CODE", "####", "????", "EXIT"]
+FONT = cv2.FONT_HERSHEY_SIMPLEX
 
-# Generate unique text
-WORDS = ["chaos", "echo", "void", "random", "silence", "dark", "light", "fracture", "glitch", "noise"]
-random_text = " ".join(random.sample(WORDS, random.randint(2, 5)))
+# Audio parameters
+SAMPLE_RATE = 44100
+NOTE_FREQS = [random.randint(200, 800) for _ in range(8)]  # Random notes
+SILENCE_PROB = 0.2  # 20% probability of silence
 
-def generate_frames():
-    os.makedirs("frames", exist_ok=True)
+# Generate Video Frames
+def generate_video_frames():
+    frames = []
     for i in range(FRAME_COUNT):
-        frame = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
-        color = [random.randint(0, 255) for _ in range(3)]
-        cv2.rectangle(frame, (random.randint(0, WIDTH//2), random.randint(0, HEIGHT//2)),
-                      (random.randint(WIDTH//2, WIDTH), random.randint(HEIGHT//2, HEIGHT)),
-                      color, -1)
-        cv2.putText(frame, random_text, (50, HEIGHT // 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.imwrite(f"frames/frame_{i:04d}.png", frame)
+        img = Image.new("RGB", (WIDTH, HEIGHT), random.choice(COLOR_PALETTE))
+        draw = ImageDraw.Draw(img)
 
+        # Random rectangles
+        for _ in range(random.randint(1, 5)):
+            x0, y0 = random.randint(0, WIDTH), random.randint(0, HEIGHT)
+            x1, y1 = x0 + random.randint(20, 200), y0 + random.randint(20, 200)
+            draw.rectangle([x0, y0, x1, y1], outline=random.choice(COLOR_PALETTE), width=random.randint(2, 6))
+
+        # Random text
+        if random.random() > 0.5:
+            text = random.choice(WORDS)
+            draw.text((random.randint(10, WIDTH - 100), random.randint(10, HEIGHT - 50)), text, fill=random.choice(COLOR_PALETTE))
+
+        # Convert to OpenCV format
+        frames.append(cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR))
+
+    return frames
+
+# Generate Sound
 def generate_audio():
-    pygame.mixer.init()
-    sample_rate = 44100
-    samples = np.zeros((DURATION * sample_rate, 2), dtype=np.int16)
-    for i in range(0, samples.shape[0], sample_rate // random.randint(4, 12)):
-        frequency = random.choice([220, 440, 880, 1760])
-        waveform = np.sin(2 * np.pi * np.arange(sample_rate) * frequency / sample_rate)
-        samples[i:i+sample_rate//random.randint(8, 16), 0] = (waveform * 32767).astype(np.int16)
+    pygame.mixer.init(frequency=SAMPLE_RATE, size=-16, channels=1)
+    sound_array = np.zeros(int(DURATION * SAMPLE_RATE), dtype=np.int16)
+
+    for i in range(0, len(sound_array), SAMPLE_RATE // random.choice([2, 4, 8])):
+        if random.random() > SILENCE_PROB:
+            freq = random.choice(NOTE_FREQS)
+            t = np.linspace(0, 1, SAMPLE_RATE // random.choice([2, 4, 8]), endpoint=False)
+            wave = 32767 * np.sin(2 * np.pi * freq * t)
+            sound_array[i:i + len(wave)] = wave.astype(np.int16)
+
     pygame.mixer.quit()
-    pygame.mixer.init(frequency=sample_rate, size=-16, channels=2)
-    pygame.sndarray.make_sound(samples).play()
-    pygame.time.delay(DURATION * 1000)
-    pygame.mixer.quit()
-    tts = gTTS(text=random_text, lang="en")
-    tts.save("audio.mp3")
+    return sound_array
 
-def create_video():
-    os.system("ffmpeg -framerate {} -i frames/frame_%04d.png -c:v libx264 -r {} temp_video.mp4".format(FRAME_RATE, FRAME_RATE))
-    os.system("ffmpeg -i temp_video.mp4 -i audio.mp3 -c:v copy -c:a aac -strict experimental output.mp4")
+# Save Video
+def save_video(frames, audio_data):
+    video_filename = "extreme_video.mp4"
+    audio_filename = "extreme_audio.wav"
 
-def cleanup():
-    os.system("rm -rf frames temp_video.mp4 audio.mp3")
+    # Save audio
+    pygame.mixer.init(frequency=SAMPLE_RATE, size=-16, channels=1)
+    pygame.mixer.Sound(audio_data).save(audio_filename)
 
-if __name__ == "__main__":
-    generate_frames()
-    generate_audio()
-    create_video()
-    cleanup()
+    # Save video using OpenCV
+    out = cv2.VideoWriter(video_filename, cv2.VideoWriter_fourcc(*'XVID'), FPS, (WIDTH, HEIGHT))
+    for frame in frames:
+        out.write(frame)
+    out.release()
 
+    # Combine video and audio using FFmpeg
+    ffmpeg.input(video_filename).input(audio_filename).output("final_video.mp4", vcodec="libx264", acodec="aac").run(overwrite_output=True)
+
+# Main execution
+frames = generate_video_frames()
+audio_data = generate_audio()
+save_video(frames, audio_data)
+
+print("Video generation complete: final_video.mp4")
