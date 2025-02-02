@@ -1,5 +1,5 @@
 import os
-import random
+os.environ["SDL_AUDIODRIVER"] = "dummy"import random
 import numpy as np
 import cv2
 import pygame
