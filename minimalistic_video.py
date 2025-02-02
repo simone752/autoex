@@ -57,7 +57,8 @@ def generate_audio():
             freq = random.choice(NOTE_FREQS)
             t = np.linspace(0, 1, SAMPLE_RATE // random.choice([2, 4, 8]), endpoint=False)
             wave = 32767 * np.sin(2 * np.pi * freq * t)
-            sound_array[i:i + len(wave)] = wave.astype(np.int16)
+insert_length = min(len(wave), len(sound_array) - i)
+sound_array[i:i + insert_length] = wave[:insert_length].astype(np.int16)
 
     pygame.mixer.quit()
     return sound_array
