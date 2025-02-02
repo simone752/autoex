@@ -1,17 +1,30 @@
 import numpy as np
-import pygame
 import random
-import string
 import os
-import ffmpeg
+import ffmpeg  # You are importing ffmpeg, but not using it directly. Consider removing if not needed.
 from PIL import Image, ImageDraw
-import time  # Import the time module
 
-# ... (Video settings remain the same)
+# Video settings
+WIDTH, HEIGHT = random.choice([(640, 480), (1280, 720), (1920, 1080)])
+FRAME_RATE = random.choice([15, 24, 30])
+DURATION = random.uniform(5, 15)
+FRAME_COUNT = int(FRAME_RATE * DURATION)
 
-# Audio settings (remain the same)
+# Audio settings
+SAMPLE_RATE = 44100
+BITS = 16
+CHANNELS = 1
 
-# ... (generate_visuals function remains the same)
+def generate_visuals():
+    os.makedirs("frames", exist_ok=True)
+    for i in range(FRAME_COUNT):
+        img = Image.new("RGB", (WIDTH, HEIGHT), random.choice(["black", "white", "gray"]))
+        draw = ImageDraw.Draw(img)
+        for _ in range(random.randint(5, 20)):
+            x0, y0 = random.randint(0, WIDTH), random.randint(0, HEIGHT)
+            x1, y1 = random.randint(x0, WIDTH), random.randint(y0, HEIGHT)
+            draw.rectangle([x0, y0, x1, y1], outline=random.choice(["red", "blue", "yellow", "green"]))
+        img.save(f"frames/frame_{i:04d}.png")
 
 def generate_audio():
     audio_length = int(SAMPLE_RATE * DURATION)
@@ -23,16 +36,7 @@ def generate_audio():
         wave = (np.sin(2 * np.pi * np.arange(int(SAMPLE_RATE * duration)) * freq / SAMPLE_RATE) * 32767).astype(np.int16)
         sound_array[start:start + len(wave)] += wave[:min(len(wave), len(sound_array) - start)]
 
-    #  Write the raw audio file directly.  No need for pygame for this.
-    np.savetxt("audio.raw", sound_array, fmt="%d") #corrected this line
-
-    # The following code is no longer needed as we write the raw file directly.
-    # pygame.mixer.init(frequency=SAMPLE_RATE, size=-BITS, channels=CHANNELS)
-    # sound = pygame.sndarray.make_sound(sound_array)
-    # pygame.mixer.Sound.play(sound)
-    # pygame.time.delay(int(DURATION * 1000))  # This is problematic!
-    # pygame.mixer.quit()
-
+    np.savetxt("audio.raw", sound_array, fmt="%d")
 
 def create_video():
     os.system(f"ffmpeg -y -framerate {FRAME_RATE} -i frames/frame_%04d.png -c:v libx264 -pix_fmt yuv420p video.mp4")
