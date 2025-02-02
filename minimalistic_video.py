@@ -59,8 +59,7 @@ def generate_audio():
             wave = 32767 * np.sin(2 * np.pi * freq * t)
 insert_length = min(len(wave), len(sound_array) - i)
 sound_array[i:i + insert_length] = wave[:insert_length].astype(np.int16)
-
-    pygame.mixer.quit()
+pygame.mixer.quit()
     return sound_array
 
 # Save Video
