@@ -22,6 +22,9 @@ WORDS = ["", "HEROHIIHODISTETHTMNGASGG", "HAATSSGSUDRYWREYWNATF", "NTNFERWNERNTS
 SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ"]
 
 # Initialize pygame mixer for sound generation
+os.environ["SDL_AUDIODRIVER"] = "dummy"
+os.environ["AUDIODEV"] = "null"
+
 pygame.mixer.init(frequency=44100, size=-16, channels=1)
 
 def generate_frames():
