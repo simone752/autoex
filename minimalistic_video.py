@@ -1,116 +1,91 @@
 import numpy as np
 import cv2
+import pygame
 import random
-import string
 import wave
 import os
 
 # Video settings
 WIDTH, HEIGHT = 640, 480
-DURATION = random.randint(8, 15)  # 8-15 sec
-FPS = random.choice([4, 6, 8, 12])  # Uncanny slow movement
+DURATION = random.randint(10, 20)  # Longer duration for a lingering effect
+FPS = random.choice([6, 10, 12])  # Fewer frames per second for eerie slowness
 FRAME_COUNT = DURATION * FPS
 OUTPUT_FILE = "extreme_video.mp4"
 
-# Backgrounds: Dark gradients, noise textures, corrupted visuals
-BACKGROUND_MODES = ["gradient", "noise", "glitch", "solid_dark"]
-WORDS = ["HEROHIIHODISTETH", "LOST?", "NOTHING", "HEROHIIHODISTETH", "LISTEN", "???", "ERROR", "HEROHIIHODISTETH?", "HELLO?", "HEROHIIHODISTETH"]
-SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ", "Ψ", "?", "#", "!!!", "%", "@", "█"]
+# Color palettes for background shifts
+BACKGROUND_COLORS = [
+    (10, 10, 10), (30, 5, 20), (15, 15, 40), (5, 25, 5), (40, 10, 10), (5, 5, 50)
+]
+FOREGROUND_COLORS = [
+    (200, 50, 50), (50, 200, 50), (50, 50, 200), (220, 220, 50), (150, 50, 220)
+]
 
-# Functions for weird backgrounds
-def generate_gradient():
-    """Creates a weird gradient with shifting colors."""
-    img = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
-    for y in range(HEIGHT):
-        color = [random.randint(0, 50), random.randint(0, 50), random.randint(100, 255)]
-        img[y, :, :] = color
-    return img
+# Random unsettling words/symbols
+WORDS = ["VOID", "NOISE", "0001101", "ERROR", "LOST", "FEED", "END", "HALT"]
+SYMBOLS = ["∆", "Ω", "⊗", "Ξ", "∑", "∞", "⧖", "⨉", "⨀"]
 
-def generate_noise():
-    """Generates static noise effect."""
-    return np.random.randint(0, 100, (HEIGHT, WIDTH, 3), dtype=np.uint8)
+# Initialize pygame mixer for glitchy sound generation
+os.environ["SDL_AUDIODRIVER"] = "dummy"
+pygame.mixer.init(frequency=44100, size=-16, channels=1)
 
-def generate_glitch():
-    """Creates a corrupted frame effect."""
-    img = np.random.randint(0, 255, (HEIGHT, WIDTH, 3), dtype=np.uint8)
-    for _ in range(random.randint(3, 7)):
-        x, y = random.randint(0, WIDTH//2), random.randint(0, HEIGHT//2)
-        w, h = random.randint(WIDTH//4, WIDTH//2), random.randint(HEIGHT//4, HEIGHT//2)
-        cv2.rectangle(img, (x, y), (x+w, y+h), (random.randint(100, 255), 0, random.randint(100, 255)), -1)
-    return img
-
-def generate_solid_dark():
-    """A solid dark color with slight variations."""
-    color = [random.randint(0, 50), random.randint(0, 50), random.randint(0, 50)]
-    return np.full((HEIGHT, WIDTH, 3), color, dtype=np.uint8)
-
-# Generate video
 def generate_frames():
-    print(f"Generating an {DURATION}-second eerie video at {WIDTH}x{HEIGHT} resolution and {FPS} fps.")
+    print(f"Generating {DURATION}-second uncanny video at {WIDTH}x{HEIGHT}, {FPS} fps.")
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video = cv2.VideoWriter("video_temp.mp4", fourcc, FPS, (WIDTH, HEIGHT))
 
     for i in range(FRAME_COUNT):
-        background_type = random.choice(BACKGROUND_MODES)
+        # Background shifts between dark tones
+        bg_color = random.choice(BACKGROUND_COLORS)
+        frame = np.full((HEIGHT, WIDTH, 3), bg_color, dtype=np.uint8)
 
-        # Select a disturbing background
-        if background_type == "gradient":
-            frame = generate_gradient()
-        elif background_type == "noise":
-            frame = generate_noise()
-        elif background_type == "glitch":
-            frame = generate_glitch()
-        else:
-            frame = generate_solid_dark()
+        # Add unpredictable grain/noise effect
+        if random.random() > 0.6:
+            noise = np.random.randint(0, 50, (HEIGHT, WIDTH, 3), dtype=np.uint8)
+            frame = cv2.add(frame, noise)
 
-        # Occasionally add weird, broken text
-        if random.random() > 0.5:
+        # Overlay shifting symbols & words
+        if random.random() > 0.3:
             text = random.choice(WORDS) + " " + random.choice(SYMBOLS)
             font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(frame, text, (random.randint(20, WIDTH-100), random.randint(50, HEIGHT-50)), 
-                        font, random.uniform(0.8, 2.0), (random.randint(150, 255), 0, 0), random.randint(1, 3), cv2.LINE_AA)
+            font_size = random.uniform(0.8, 2.0)
+            position = (random.randint(50, WIDTH-150), random.randint(50, HEIGHT-50))
+            color = random.choice(FOREGROUND_COLORS)
+            cv2.putText(frame, text, position, font, font_size, color, 2, cv2.LINE_AA)
 
-        # Sudden color shifts or inverted frame effect
-        if random.random() < 0.2:
-            frame = 255 - frame  # Invert colors for sudden flashes
+        # Occasional scanline effect
+        if random.random() > 0.7:
+            for _ in range(random.randint(3, 10)):
+                y_pos = random.randint(0, HEIGHT)
+                cv2.line(frame, (0, y_pos), (WIDTH, y_pos), (50, 50, 50), 1)
 
         video.write(frame)
 
     video.release()
     print("Video generation complete.")
 
-# Generate eerie audio
 def generate_audio():
     SAMPLE_RATE = 44100
     samples = np.zeros(SAMPLE_RATE * DURATION, dtype=np.int16)
 
     for i in range(DURATION):
-        freq = random.choice([220, 440, 880, 100, 50])  # Mix of deep and high frequencies
-        volume = random.randint(3000, 12000)
+        freq = random.choice([220, 330, 440, 660, 880])  # Creepy harmonic tones
+        volume = random.randint(5000, 20000)
+
         wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
-
-        # Distorted sound processing
-        if random.random() < 0.3:
-            wave_data = np.flip(wave_data)  # Reverse sound
-        if random.random() < 0.2:
-            wave_data = wave_data * np.hamming(len(wave_data))  # Soft fading
-        if random.random() < 0.1:
-            wave_data = wave_data * -1  # Phase inversion for creepier effect
-
         start, end = i * SAMPLE_RATE, (i + 1) * SAMPLE_RATE
         samples[start:end] = wave_data[:SAMPLE_RATE]
 
-    # Background hum or static noise
-    if random.random() > 0.5:
-        static_noise = (np.random.normal(0, 1000, samples.shape)).astype(np.int16)
-        samples += static_noise
+        # Introduce random audio distortions
+        if random.random() > 0.7:
+            glitch_start = random.randint(start, end - SAMPLE_RATE // 10)
+            samples[glitch_start:glitch_start + SAMPLE_RATE // 10] = np.random.randint(-20000, 20000, SAMPLE_RATE // 10)
 
-    # Moments of eerie silence
-    if random.random() > 0.4:
-        silence_start = random.randint(1, DURATION - 2) * SAMPLE_RATE
-        samples[silence_start:silence_start + (SAMPLE_RATE // 3)] = 0
+        # Reverse segments of the sound
+        if random.random() > 0.5:
+            reverse_start = random.randint(0, SAMPLE_RATE * (DURATION // 2))
+            samples[reverse_start:reverse_start + SAMPLE_RATE // 4] = samples[reverse_start:reverse_start + SAMPLE_RATE // 4][::-1]
 
-    # Save audio as WAV
+    # Save the audio as a WAV file
     with wave.open("audio.wav", "w") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
@@ -119,13 +94,29 @@ def generate_audio():
 
     print("Audio generation complete.")
 
-# Combine video and audio
 def combine_video_audio():
+    if not os.path.exists("video_temp.mp4") or not os.path.exists("audio.wav"):
+        print("Error: Missing video or audio file. Video generation failed.")
+        return
+    
     temp_output = "temp_uncanny_video.mp4"
-    os.system(f"ffmpeg -y -i video_temp.mp4 -i audio.wav -c:v copy -c:a aac {temp_output}")
+
+    # Ensure old files are removed before creating a new one
+    if os.path.exists(temp_output):
+        os.remove(temp_output)
+    if os.path.exists(OUTPUT_FILE):
+        os.remove(OUTPUT_FILE)
+
+    os.system(f"ffmpeg -y -i video_temp.mp4 -i audio.wav -c:v libx264 -c:a aac -strict experimental {temp_output}")
+
+    if not os.path.exists(temp_output):
+        print("FFmpeg failed to generate the final video. Check your installation.")
+        return
+
+    os.rename(temp_output, OUTPUT_FILE)
     os.remove("video_temp.mp4")
     os.remove("audio.wav")
-    os.rename(temp_output, OUTPUT_FILE)
+
     print("Final eerie video with sound is ready.")
 
 if __name__ == "__main__":
