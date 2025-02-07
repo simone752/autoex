@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import pygame
 import random
 import string
 import wave
@@ -8,29 +7,23 @@ import os
 
 # Video settings
 WIDTH, HEIGHT = 640, 480
-DURATION = random.randint(8, 15)  # Random video length (8-15 sec)
-FPS = random.choice([10, 15, 24, 30])  # Varying framerate
+DURATION = random.randint(8, 15)  # Random duration (8-15 sec)
+FPS = random.choice([10, 15, 24, 30])  # Varying frame rates
 FRAME_COUNT = DURATION * FPS
 OUTPUT_FILE = "extreme_video.mp4"
 
-# Colors (alternating red/blue like Webdriver Torso, but randomized)
+# Colors (like Webdriver Torso, but randomized)
 BASE_COLORS = [(255, 0, 0), (0, 0, 255)]
 ALT_COLORS = [(0, 255, 0), (255, 255, 0), (255, 0, 255)]
 
-# Random words for text overlay
-WORDS = ["", "HEROHIIHODISTETHTMNGASGG", "HAATSSGSUDRYWREYWNATF", "NTNFERWNERNTSNOTRDLEN", "FDOEOOEWEUELDEUAOOHAHEHO", "DATA", "SIGNAL", "ISRATEENLHOOOHTFJ"]
-SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ"]
-
-# Initialize pygame mixer for sound generation
-os.environ["SDL_AUDIODRIVER"] = "dummy"
-os.environ["AUDIODEV"] = "null"
-
-pygame.mixer.init(frequency=44100, size=-16, channels=1)
+# Random words and symbols for overlay
+WORDS = ["SIGNAL", "DATA", "ERROR", "TEST", "TRANSMISSION", "LOST", "CODE"]
+SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ", "Ψ"]
 
 def generate_frames():
     print(f"Generating a {DURATION}-second video at {WIDTH}x{HEIGHT} resolution and {FPS} fps.")
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    video = cv2.VideoWriter(OUTPUT_FILE, fourcc, FPS, (WIDTH, HEIGHT))
+    video = cv2.VideoWriter("video_temp.mp4", fourcc, FPS, (WIDTH, HEIGHT))
 
     for i in range(FRAME_COUNT):
         frame = np.full((HEIGHT, WIDTH, 3), 255, dtype=np.uint8)  # White background
@@ -55,20 +48,18 @@ def generate_frames():
 
 def generate_audio():
     SAMPLE_RATE = 44100
-    DURATION_SEC = DURATION
-    samples = np.zeros(SAMPLE_RATE * DURATION_SEC, dtype=np.int16)
+    samples = np.zeros(SAMPLE_RATE * DURATION, dtype=np.int16)
 
-    for i in range(DURATION_SEC):
+    for i in range(DURATION):
         freq = random.choice([440, 880, 1760])  # Random A4-A6 notes like Webdriver Torso
         volume = random.randint(5000, 15000)
         wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
-        start = i * SAMPLE_RATE
-        end = start + SAMPLE_RATE
+        start, end = i * SAMPLE_RATE, (i + 1) * SAMPLE_RATE
         samples[start:end] = wave_data[:SAMPLE_RATE]
 
     # Add moments of silence
     if random.random() > 0.5:
-        silence_start = random.randint(1, DURATION_SEC - 2) * SAMPLE_RATE
+        silence_start = random.randint(1, DURATION - 2) * SAMPLE_RATE
         samples[silence_start:silence_start + (SAMPLE_RATE // 2)] = 0
 
     # Save audio as WAV
@@ -81,10 +72,16 @@ def generate_audio():
     print("Audio generation complete.")
 
 def combine_video_audio():
-    os.system(f"ffmpeg -y -i {OUTPUT_FILE} -i audio.wav -c:v copy -c:a aac extrem_video.mp4")
-    os.remove(OUTPUT_FILE)
+    temp_output = "temp_extreme_video.mp4"
+    
+    # Ensure ffmpeg overwrites correctly
+    os.system(f"ffmpeg -y -i video_temp.mp4 -i audio.wav -c:v copy -c:a aac {temp_output}")
+
+    # Clean up temp files
+    os.remove("video_temp.mp4")
     os.remove("audio.wav")
-    os.rename("extreme_video.mp4", OUTPUT_FILE)
+    os.rename(temp_output, OUTPUT_FILE)
+
     print("Final video with sound is ready.")
 
 if __name__ == "__main__":
