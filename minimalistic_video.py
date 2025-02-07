@@ -21,7 +21,7 @@ FOREGROUND_COLORS = [
 ]
 
 # Random unsettling words/symbols
-WORDS = ["VOID", "NOISE", "0001101", "ERROR", "LOST", "FEED", "END", "HALT"]
+WORDS = ["HEROHIIHODISTETH", "NOISE", "0001101", "HEROHIIHODISTETH", "LOST", "HEROHIIHODISTETHHEROHIIHODISTETH", "END", "HALT"]
 SYMBOLS = ["∆", "Ω", "⊗", "Ξ", "∑", "∞", "⧖", "⨉", "⨀"]
 
 # Initialize pygame mixer for glitchy sound generation
