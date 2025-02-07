@@ -1,91 +1,90 @@
-import os
-import random
 import numpy as np
-import subprocess
+import cv2
+import pygame
+import random
+import string
 import wave
-from PIL import Image, ImageDraw, ImageFont
+import os
 
-# --- Configuration ---
-NUM_SEGMENTS = random.randint(5, 15)  # Video duration (5-15 seconds)
-OUT_FPS = 24  # Output video frame rate
-WIDTH, HEIGHT = random.choice([(640, 480), (800, 600), (1280, 720)])  # Random resolution
-SAMPLE_RATE = 44100  # Audio sample rate
+# Video settings
+WIDTH, HEIGHT = 640, 480
+DURATION = random.randint(8, 15)  # Random video length (8-15 sec)
+FPS = random.choice([10, 15, 24, 30])  # Varying framerate
+FRAME_COUNT = DURATION * FPS
+OUTPUT_FILE = "extreme_video.mp4"
 
-# --- Helper: Generate a unique tone/beep for each segment ---
-def generate_beep(freq, duration, sample_rate):
-    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-    vibrato = 1 + 0.05 * np.sin(2 * np.pi * random.uniform(2, 5) * t)
-    beep = 0.5 * np.sin(2 * np.pi * freq * t) * vibrato
-    return beep
+# Colors (alternating red/blue like Webdriver Torso, but randomized)
+BASE_COLORS = [(255, 0, 0), (0, 0, 255)]
+ALT_COLORS = [(0, 255, 0), (255, 255, 0), (255, 0, 255)]
 
-# --- Visual Generation ---
+# Random words for text overlay
+WORDS = ["VOID", "ERROR", "SYSTEM", "TEST", "UNKNOWN", "DATA", "SIGNAL", "CODE"]
+SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ"]
+
+# Initialize pygame mixer for sound generation
+pygame.mixer.init(frequency=44100, size=-16, channels=1)
+
 def generate_frames():
-    os.makedirs("frames", exist_ok=True)
-    palette = [(random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)) for _ in range(10)]
+    print(f"Generating a {DURATION}-second video at {WIDTH}x{HEIGHT} resolution and {FPS} fps.")
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video = cv2.VideoWriter(OUTPUT_FILE, fourcc, FPS, (WIDTH, HEIGHT))
 
-    try:
-        font = ImageFont.truetype("arial.ttf", 40)
-    except Exception:
-        font = ImageFont.load_default()
-    
-    for i in range(NUM_SEGMENTS):
-        bg_color = random.choice(palette)
-        img = Image.new("RGB", (WIDTH, HEIGHT), bg_color)
-        draw = ImageDraw.Draw(img)
-        
-        margin = random.randint(20, 60)
-        shape_color = random.choice(palette)
-        draw.rectangle([margin, margin, WIDTH - margin, HEIGHT - margin], outline=shape_color, width=random.randint(3, 8))
-        
-        if random.random() < 0.5:
-            random_text = "".join(random.choices("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=random.randint(4, 8)))
-            text_bbox = draw.textbbox((0, 0), random_text, font=font)  # Updated method
-            text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
-            pos = (random.randint(0, WIDTH - text_width), random.randint(0, HEIGHT - text_height))
-            draw.text(pos, random_text, fill=random.choice(palette), font=font)
-        
-        img.save(f"frames/frame_{i:03d}.png")
+    for i in range(FRAME_COUNT):
+        frame = np.full((HEIGHT, WIDTH, 3), 255, dtype=np.uint8)  # White background
 
-# --- Audio Generation ---
+        # Alternate rectangle colors (like Webdriver Torso)
+        color_choice = BASE_COLORS[i % 2] if random.random() > 0.3 else random.choice(ALT_COLORS)
+        x0, y0 = random.randint(0, WIDTH // 2), random.randint(0, HEIGHT // 2)
+        x1, y1 = random.randint(WIDTH // 2, WIDTH), random.randint(HEIGHT // 2, HEIGHT)
+        cv2.rectangle(frame, (x0, y0), (x1, y1), color_choice, -1)
+
+        # Occasionally add random text or symbols
+        if random.random() > 0.7:
+            text = random.choice(WORDS) + " " + random.choice(SYMBOLS)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            cv2.putText(frame, text, (random.randint(50, WIDTH-100), random.randint(50, HEIGHT-50)), 
+                        font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+
+        video.write(frame)
+
+    video.release()
+    print("Video generation complete.")
+
 def generate_audio():
-    audio_segments = []
-    base_freq = random.choice([440, 550, 660])
-    for i in range(NUM_SEGMENTS):
-        freq = base_freq + i * random.uniform(5, 50)
-        beep = generate_beep(freq, 1.0, SAMPLE_RATE)
-        audio_segments.append(beep)
-    
-    audio = np.concatenate(audio_segments)
-    audio = audio / np.max(np.abs(audio))
-    audio_int16 = np.int16(audio * 32767)
-    
-    with wave.open("audio.wav", "w") as wav_file:
-        wav_file.setnchannels(1)
-        wav_file.setsampwidth(2)
-        wav_file.setframerate(SAMPLE_RATE)
-        wav_file.writeframes(audio_int16.tobytes())
+    SAMPLE_RATE = 44100
+    DURATION_SEC = DURATION
+    samples = np.zeros(SAMPLE_RATE * DURATION_SEC, dtype=np.int16)
 
-# --- Video Assembly ---
-def create_video():
-    subprocess.run([
-        "ffmpeg", "-y", "-framerate", "1", "-i", "frames/frame_%03d.png",
-        "-r", str(OUT_FPS), "-c:v", "libx264", "-pix_fmt", "yuv420p", "temp_video.mp4"
-    ], check=True)
-    
-    subprocess.run([
-        "ffmpeg", "-y", "-i", "temp_video.mp4", "-i", "audio.wav",
-        "-c:v", "copy", "-c:a", "aac", "extreme_video.mp4"
-    ], check=True)
+    for i in range(DURATION_SEC):
+        freq = random.choice([440, 880, 1760])  # Random A4-A6 notes like Webdriver Torso
+        volume = random.randint(5000, 15000)
+        wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
+        start = i * SAMPLE_RATE
+        end = start + SAMPLE_RATE
+        samples[start:end] = wave_data[:SAMPLE_RATE]
 
-# --- Main Execution ---
-def main():
-    print(f"Generating a video of {NUM_SEGMENTS} seconds at resolution {WIDTH}x{HEIGHT} and {OUT_FPS} fps.")
-    generate_frames()
-    print("Frames generated.")
-    generate_audio()
-    print("Audio generated.")
-    create_video()
-    print("Video generation complete: extreme_video.mp4")
+    # Add moments of silence
+    if random.random() > 0.5:
+        silence_start = random.randint(1, DURATION_SEC - 2) * SAMPLE_RATE
+        samples[silence_start:silence_start + (SAMPLE_RATE // 2)] = 0
+
+    # Save audio as WAV
+    with wave.open("audio.wav", "w") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SAMPLE_RATE)
+        wf.writeframes(samples.tobytes())
+
+    print("Audio generation complete.")
+
+def combine_video_audio():
+    os.system(f"ffmpeg -y -i {OUTPUT_FILE} -i audio.wav -c:v copy -c:a aac final_video.mp4")
+    os.remove(OUTPUT_FILE)
+    os.remove("audio.wav")
+    os.rename("final_video.mp4", OUTPUT_FILE)
+    print("Final video with sound is ready.")
 
 if __name__ == "__main__":
-    main()
+    generate_frames()
+    generate_audio()
+    combine_video_audio()
