@@ -78,10 +78,10 @@ def generate_audio():
     print("Audio generation complete.")
 
 def combine_video_audio():
-    os.system(f"ffmpeg -y -i {OUTPUT_FILE} -i audio.wav -c:v copy -c:a aac final_video.mp4")
+    os.system(f"ffmpeg -y -i {OUTPUT_FILE} -i audio.wav -c:v copy -c:a aac extreme_video.mp4")
     os.remove(OUTPUT_FILE)
     os.remove("audio.wav")
-    os.rename("final_video.mp4", OUTPUT_FILE)
+    os.rename("extreme_video.mp4", OUTPUT_FILE)
     print("Final video with sound is ready.")
 
 if __name__ == "__main__":
