@@ -10,7 +10,7 @@ WIDTH, HEIGHT = 640, 480
 DURATION = random.randint(8, 15)  # 8-15 sec
 FPS = random.choice([4, 6, 8, 12])  # Uncanny slow movement
 FRAME_COUNT = DURATION * FPS
-OUTPUT_FILE = "uncanny_video.mp4"
+OUTPUT_FILE = "extreme_video.mp4"
 
 # Backgrounds: Dark gradients, noise textures, corrupted visuals
 BACKGROUND_MODES = ["gradient", "noise", "glitch", "solid_dark"]
