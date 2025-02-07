@@ -7,85 +7,106 @@ import os
 
 # Video settings
 WIDTH, HEIGHT = 640, 480
-DURATION = random.randint(10, 20)  # Extended duration (10-20 sec)
-FPS = random.choice([6, 12, 15, 20])  # Slower frame rates for unsettling effect
+DURATION = random.randint(8, 15)  # 8-15 sec
+FPS = random.choice([4, 6, 8, 12])  # Uncanny slow movement
 FRAME_COUNT = DURATION * FPS
-OUTPUT_FILE = "extreme_video.mp4"
+OUTPUT_FILE = "uncanny_video.mp4"
 
-# Colors (alternating red/blue like Webdriver Torso, but with eerie additions)
-BASE_COLORS = [(255, 0, 0), (0, 0, 255)]
-ALT_COLORS = [(0, 255, 0), (255, 255, 0), (255, 0, 255), (50, 50, 50), (200, 50, 50), (50, 200, 50)]
+# Backgrounds: Dark gradients, noise textures, corrupted visuals
+BACKGROUND_MODES = ["gradient", "noise", "glitch", "solid_dark"]
+WORDS = ["HEROHIIHODISTETH", "LOST?", "NOTHING", "HEROHIIHODISTETH", "LISTEN", "???", "ERROR", "HEROHIIHODISTETH?", "HELLO?", "HEROHIIHODISTETH"]
+SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ", "Ψ", "?", "#", "!!!", "%", "@", "█"]
 
-# Random words and symbols for overlay (mix of normal and unsettling words)
-WORDS = ["SIGNAL", "HEROHIIHODISTETH", "ERROR", "TEST", "HEROHIIHODISTETH", "LOST", "VOID", "HEROHIIHODISTETH?", "WHO?", "HEROHIIHODISTETH", "NOISE"]
-SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ", "Ψ", "?", "#", "!!", "!!!"]
+# Functions for weird backgrounds
+def generate_gradient():
+    """Creates a weird gradient with shifting colors."""
+    img = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+    for y in range(HEIGHT):
+        color = [random.randint(0, 50), random.randint(0, 50), random.randint(100, 255)]
+        img[y, :, :] = color
+    return img
 
-# Glitch effect probability
-GLITCH_PROB = 0.2
+def generate_noise():
+    """Generates static noise effect."""
+    return np.random.randint(0, 100, (HEIGHT, WIDTH, 3), dtype=np.uint8)
 
+def generate_glitch():
+    """Creates a corrupted frame effect."""
+    img = np.random.randint(0, 255, (HEIGHT, WIDTH, 3), dtype=np.uint8)
+    for _ in range(random.randint(3, 7)):
+        x, y = random.randint(0, WIDTH//2), random.randint(0, HEIGHT//2)
+        w, h = random.randint(WIDTH//4, WIDTH//2), random.randint(HEIGHT//4, HEIGHT//2)
+        cv2.rectangle(img, (x, y), (x+w, y+h), (random.randint(100, 255), 0, random.randint(100, 255)), -1)
+    return img
+
+def generate_solid_dark():
+    """A solid dark color with slight variations."""
+    color = [random.randint(0, 50), random.randint(0, 50), random.randint(0, 50)]
+    return np.full((HEIGHT, WIDTH, 3), color, dtype=np.uint8)
+
+# Generate video
 def generate_frames():
-    print(f"Generating a {DURATION}-second eerie video at {WIDTH}x{HEIGHT} resolution and {FPS} fps.")
+    print(f"Generating an {DURATION}-second eerie video at {WIDTH}x{HEIGHT} resolution and {FPS} fps.")
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video = cv2.VideoWriter("video_temp.mp4", fourcc, FPS, (WIDTH, HEIGHT))
 
     for i in range(FRAME_COUNT):
-        frame = np.full((HEIGHT, WIDTH, 3), 255, dtype=np.uint8)  # White background
+        background_type = random.choice(BACKGROUND_MODES)
 
-        # Unpredictable color shifts and glitches
-        if random.random() < GLITCH_PROB:
-            color_choice = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))  # Glitchy random colors
+        # Select a disturbing background
+        if background_type == "gradient":
+            frame = generate_gradient()
+        elif background_type == "noise":
+            frame = generate_noise()
+        elif background_type == "glitch":
+            frame = generate_glitch()
         else:
-            color_choice = BASE_COLORS[i % 2] if random.random() > 0.3 else random.choice(ALT_COLORS)
+            frame = generate_solid_dark()
 
-        # Random rectangles (sometimes oversized or misplaced)
-        x0, y0 = random.randint(0, WIDTH // 2), random.randint(0, HEIGHT // 2)
-        x1, y1 = random.randint(WIDTH // 2, WIDTH), random.randint(HEIGHT // 2, HEIGHT)
-        if random.random() < 0.15:
-            x0, y0, x1, y1 = 0, 0, WIDTH, HEIGHT  # Full screen flash
-        cv2.rectangle(frame, (x0, y0), (x1, y1), color_choice, -1)
-
-        # Occasionally add random eerie text or symbols
-        if random.random() > 0.6:
+        # Occasionally add weird, broken text
+        if random.random() > 0.5:
             text = random.choice(WORDS) + " " + random.choice(SYMBOLS)
             font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(frame, text, (random.randint(50, WIDTH-100), random.randint(50, HEIGHT-50)), 
-                        font, random.uniform(0.5, 1.5), (0, 0, 0), random.choice([1, 2, 3]), cv2.LINE_AA)
+            cv2.putText(frame, text, (random.randint(20, WIDTH-100), random.randint(50, HEIGHT-50)), 
+                        font, random.uniform(0.8, 2.0), (random.randint(150, 255), 0, 0), random.randint(1, 3), cv2.LINE_AA)
 
-        # Distorted noise overlay
-        if random.random() < 0.1:
-            noise = np.random.randint(0, 50, (HEIGHT, WIDTH, 3), dtype=np.uint8)
-            frame = cv2.add(frame, noise)
+        # Sudden color shifts or inverted frame effect
+        if random.random() < 0.2:
+            frame = 255 - frame  # Invert colors for sudden flashes
 
         video.write(frame)
 
     video.release()
     print("Video generation complete.")
 
+# Generate eerie audio
 def generate_audio():
     SAMPLE_RATE = 44100
     samples = np.zeros(SAMPLE_RATE * DURATION, dtype=np.int16)
 
     for i in range(DURATION):
-        freq = random.choice([220, 440, 880, 1760])  # Low to high unsettling tones
-        volume = random.randint(3000, 15000)
+        freq = random.choice([220, 440, 880, 100, 50])  # Mix of deep and high frequencies
+        volume = random.randint(3000, 12000)
         wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
 
-        # Apply eerie effects
+        # Distorted sound processing
         if random.random() < 0.3:
-            wave_data = np.flip(wave_data)  # Reverse sound chunks
+            wave_data = np.flip(wave_data)  # Reverse sound
         if random.random() < 0.2:
-            wave_data = wave_data * np.hamming(len(wave_data))  # Soft fade in/out effect
+            wave_data = wave_data * np.hamming(len(wave_data))  # Soft fading
+        if random.random() < 0.1:
+            wave_data = wave_data * -1  # Phase inversion for creepier effect
 
         start, end = i * SAMPLE_RATE, (i + 1) * SAMPLE_RATE
         samples[start:end] = wave_data[:SAMPLE_RATE]
 
-    # Add static or background hum
+    # Background hum or static noise
     if random.random() > 0.5:
         static_noise = (np.random.normal(0, 1000, samples.shape)).astype(np.int16)
         samples += static_noise
 
-    # Introduce unexpected silence
-    if random.random() > 0.5:
+    # Moments of eerie silence
+    if random.random() > 0.4:
         silence_start = random.randint(1, DURATION - 2) * SAMPLE_RATE
         samples[silence_start:silence_start + (SAMPLE_RATE // 3)] = 0
 
@@ -98,20 +119,17 @@ def generate_audio():
 
     print("Audio generation complete.")
 
+# Combine video and audio
 def combine_video_audio():
-    temp_output = "temp_extreme_video.mp4"
-    
-    # Ensure ffmpeg overwrites correctly
+    temp_output = "temp_uncanny_video.mp4"
     os.system(f"ffmpeg -y -i video_temp.mp4 -i audio.wav -c:v copy -c:a aac {temp_output}")
-
-    # Clean up temp files
     os.remove("video_temp.mp4")
     os.remove("audio.wav")
     os.rename(temp_output, OUTPUT_FILE)
-
     print("Final eerie video with sound is ready.")
 
 if __name__ == "__main__":
     generate_frames()
     generate_audio()
     combine_video_audio()
+
