@@ -18,7 +18,7 @@ BASE_COLORS = [(255, 0, 0), (0, 0, 255)]
 ALT_COLORS = [(0, 255, 0), (255, 255, 0), (255, 0, 255)]
 
 # Random words for text overlay
-WORDS = ["VOID", "ERROR", "SYSTEM", "TEST", "UNKNOWN", "DATA", "SIGNAL", "CODE"]
+WORDS = ["", "HEROHIIHODISTETHTMNGASGG", "HAATSSGSUDRYWREYWNATF", "NTNFERWNERNTSNOTRDLEN", "FDOEOOEWEUELDEUAOOHAHEHO", "DATA", "SIGNAL", "ISRATEENLHOOOHTFJ"]
 SYMBOLS = ["∆", "Ω", "∑", "∂", "∫", "≈", "⊗", "Ξ"]
 
 # Initialize pygame mixer for sound generation
