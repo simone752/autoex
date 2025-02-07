@@ -1,5 +1,6 @@
 numpy
 opencv-python
 pygame
-Pillow
+ffmpeg-python
+pillow
 
