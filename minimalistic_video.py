@@ -21,7 +21,7 @@ COLOR_SCHEMES = [
 ]
 
 # Random creepy phrases & symbols
-WORDS = ["ERROR", "NO SIGNAL", "DON'T LOOK", "UNKNOWN", "MISSING", "IT SEES YOU"]
+WORDS = ["ERROR", "NO SIGNAL", "DON'T LOOK", "GSUDRYWREYWNAT", "MISSING", "IT SEES YOU"]
 SYMBOLS = ["∆", "Ω", "∑", "∂", "⊗", "Ξ", "☠", "✖"]
 
 # Initialize pygame mixer for eerie sound effects
