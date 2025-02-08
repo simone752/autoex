@@ -2,81 +2,73 @@ import numpy as np
 import cv2
 import pygame
 import random
+import string
 import wave
 import os
 
 # Video settings
 WIDTH, HEIGHT = 640, 480
-DURATION = random.randint(10, 20)  # 10-20 seconds per video
-FPS = random.choice([5, 8, 10])  # Slow, uneasy pacing
+DURATION = random.randint(10, 20)  # Each video has a different length
+FPS = random.choice([6, 10, 12])  # Unusually slow frame rate for discomfort
 FRAME_COUNT = DURATION * FPS
 OUTPUT_FILE = "extreme_video.mp4"
 
-# Thematic Elements
-THEMES = {
-    "ERROR": {
-        "colors": [(0, 0, 0), (255, 0, 0), (0, 255, 255)],
-        "words": ["MALFUNCTION", "DATA CORRUPT", "???", "01011011"],
-        "sounds": ["static", "glitch", "electronic"]
-    },
-    "FLESH": {
-        "colors": [(150, 0, 0), (255, 150, 150), (80, 30, 30)],
-        "words": ["MORPH", "INSIDE", "MEAT", "HUNGER"],
-        "sounds": ["wet", "heartbeat", "distant voice"]
-    },
-    "LOST": {
-        "colors": [(0, 0, 50), (10, 10, 100), (5, 5, 150)],
-        "words": ["NO EXIT", "WHERE AM I?", "VOID", "HELLO?"],
-        "sounds": ["echo", "radio static", "whisper"]
-    },
-    "DECAY": {
-        "colors": [(40, 20, 10), (80, 40, 20), (160, 80, 40)],
-        "words": ["ROT", "DISSOLVE", "TIME?", "FORGOTTEN"],
-        "sounds": ["low hum", "distant scraping", "clock ticking"]
-    }
-}
+# Dark, unnatural, and eerie color palettes
+COLOR_SCHEMES = [
+    [(10, 10, 10), (255, 0, 0), (0, 0, 255)],  # Dark with red/blue
+    [(50, 50, 50), (0, 255, 0), (255, 255, 0)],  # Green/yellow
+    [(30, 20, 40), (180, 0, 255), (0, 255, 255)],  # Purple/neon cyan
+]
 
-# Pick a random theme for this video
-SELECTED_THEME = random.choice(list(THEMES.keys()))
-THEME_DATA = THEMES[SELECTED_THEME]
+# Random creepy phrases & symbols
+WORDS = ["ERROR", "NO SIGNAL", "DON'T LOOK", "UNKNOWN", "MISSING", "IT SEES YOU"]
+SYMBOLS = ["∆", "Ω", "∑", "∂", "⊗", "Ξ", "☠", "✖"]
 
-# Initialize pygame mixer
+# Initialize pygame mixer for eerie sound effects
 os.environ["SDL_AUDIODRIVER"] = "dummy"
 pygame.mixer.init(frequency=44100, size=-16, channels=1)
 
 def generate_frames():
-    print(f"Generating {DURATION}-second nightmare video with theme: {SELECTED_THEME}")
+    """Generates eerie, unsettling video frames with glitches and distortions."""
+    print(f"Generating {DURATION}-second nightmare video...")
 
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video = cv2.VideoWriter("video_temp.mp4", fourcc, FPS, (WIDTH, HEIGHT))
 
+    # Pick a random color scheme for this video
+    colors = random.choice(COLOR_SCHEMES)
+
     for i in range(FRAME_COUNT):
-        bg_color = random.choice(THEME_DATA["colors"])
+        # Select a disturbing background color
+        bg_color = random.choice(colors)
         frame = np.full((HEIGHT, WIDTH, 3), bg_color, dtype=np.uint8)
 
-        # Distortion effects
+        # Distorted noise overlay
         if random.random() > 0.5:
             noise = np.random.randint(0, 100, (HEIGHT, WIDTH, 3), dtype=np.uint8)
             frame = cv2.add(frame, noise)
 
-        # Flashing symbols & cryptic words
+        # Random glitch effect (screen tearing)
+        if random.random() > 0.6:
+            y_pos = random.randint(0, HEIGHT - 15)
+            frame[y_pos:y_pos + 5, :] = frame[y_pos + 10:y_pos + 15, :]
+
+        # Cryptic text overlay
         if random.random() > 0.3:
-            text = random.choice(THEME_DATA["words"])
+            text = random.choice(WORDS) + " " + random.choice(SYMBOLS)
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_size = random.uniform(0.8, 2.5)
-            position = (random.randint(50, WIDTH-150), random.randint(50, HEIGHT-50))
+            font_size = random.uniform(0.8, 2.0)
+            position = (random.randint(50, WIDTH - 150), random.randint(50, HEIGHT - 50))
             text_color = (random.randint(100, 255), random.randint(0, 255), random.randint(0, 255))
             cv2.putText(frame, text, position, font, font_size, text_color, 2, cv2.LINE_AA)
 
-        # Occasional screen tear effect
-        if random.random() > 0.7:
-            y_pos = random.randint(0, HEIGHT)
-if y_pos + 15 < HEIGHT:  # Ensure we don't go out of bounds
-    frame[y_pos:y_pos + 5, :] = frame[y_pos + 10:y_pos + 15, :]
+        # Flickering effect (frames randomly go to black)
+        if random.random() > 0.8:
+            frame[:, :] = (0, 0, 0)
 
-        # Rare hidden message (only appears for 1 frame)
+        # Rare hidden message (only appears once)
         if i == random.randint(1, FRAME_COUNT - 2):
-            cv2.putText(frame, "HELP ME", (WIDTH//3, HEIGHT//2), font, 2, (255, 255, 255), 3, cv2.LINE_AA)
+            cv2.putText(frame, "HELP ME", (WIDTH // 3, HEIGHT // 2), font, 2, (255, 255, 255), 3, cv2.LINE_AA)
 
         video.write(frame)
 
@@ -84,35 +76,28 @@ if y_pos + 15 < HEIGHT:  # Ensure we don't go out of bounds
     print("Video generation complete.")
 
 def generate_audio():
+    """Generates eerie, unsettling soundscapes."""
     SAMPLE_RATE = 44100
     samples = np.zeros(SAMPLE_RATE * DURATION, dtype=np.int16)
 
-    # Choose a main sound effect
-    sound_style = random.choice(THEME_DATA["sounds"])
-
     for i in range(DURATION):
-        freq = random.choice([220, 330, 440, 666, 880])  # Eerie frequencies
-        volume = random.randint(5000, 20000)
-
+        freq = random.choice([220, 440, 880, 120])  # Low drones and eerie tones
+        volume = random.randint(4000, 12000)
         wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
-        start, end = i * SAMPLE_RATE, (i + 1) * SAMPLE_RATE
-        samples[start:end] = wave_data[:SAMPLE_RATE]
 
-        # Add different distortions based on the sound style
-        if sound_style == "glitch" and random.random() > 0.5:
-            glitch_start = random.randint(start, end - SAMPLE_RATE // 10)
-            samples[glitch_start:glitch_start + SAMPLE_RATE // 10] = np.random.randint(-20000, 20000, SAMPLE_RATE // 10)
+        start = i * SAMPLE_RATE
+        end = min(start + SAMPLE_RATE, len(samples))
+        samples[start:end] = wave_data[:end - start]
 
-        elif sound_style == "heartbeat" and random.random() > 0.5:
-            beat_start = random.randint(start, end - SAMPLE_RATE // 5)
-            samples[beat_start:beat_start + SAMPLE_RATE // 20] = samples[beat_start:beat_start + SAMPLE_RATE // 20] // 2
+        # Random silent moments or distortions
+        if random.random() > 0.7:
+            samples[start:start + SAMPLE_RATE // 4] = 0  # Silence
 
-        elif sound_style == "whisper" and random.random() > 0.5:
-            whisper_start = random.randint(0, SAMPLE_RATE * (DURATION // 2))
-            samples[whisper_start:whisper_start + SAMPLE_RATE // 4] = np.random.randint(-5000, 5000, SAMPLE_RATE // 4)
+        if random.random() > 0.6:
+            samples[start:start + SAMPLE_RATE // 5] *= -1  # Inverted sound
 
-    # Save audio
-    with wave.open("audio.wav", "w") as wf:
+    # Save as WAV
+    with wave.open("audio_temp.wav", "w") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(SAMPLE_RATE)
@@ -121,12 +106,14 @@ def generate_audio():
     print("Audio generation complete.")
 
 def combine_video_audio():
-    os.system(f"ffmpeg -y -i video_temp.mp4 -i audio.wav -c:v libx264 -c:a aac -strict experimental {OUTPUT_FILE}")
+    """Combines video and audio into a final mp4 file."""
+    os.system(f"ffmpeg -y -i video_temp.mp4 -i audio_temp.wav -c:v copy -c:a aac -strict experimental {OUTPUT_FILE}")
     os.remove("video_temp.mp4")
-    os.remove("audio.wav")
-    print(f"Final nightmare video ({SELECTED_THEME}) is ready.")
+    os.remove("audio_temp.wav")
+    print(f"Final nightmare video saved as {OUTPUT_FILE}")
 
 if __name__ == "__main__":
     generate_frames()
     generate_audio()
     combine_video_audio()
+
