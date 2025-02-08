@@ -71,7 +71,8 @@ def generate_frames():
         # Occasional screen tear effect
         if random.random() > 0.7:
             y_pos = random.randint(0, HEIGHT)
-            frame[y_pos:y_pos + 5, :] = frame[y_pos + 10:y_pos + 15, :]
+if y_pos + 15 < HEIGHT:  # Ensure we don't go out of bounds
+    frame[y_pos:y_pos + 5, :] = frame[y_pos + 10:y_pos + 15, :]
 
         # Rare hidden message (only appears for 1 frame)
         if i == random.randint(1, FRAME_COUNT - 2):
