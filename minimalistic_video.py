@@ -23,8 +23,8 @@ COLOR_SCHEMES = [
 
 # Expanding cryptic phrases and symbols
 WORDS = [
-    "ERROR", "NO SIGNAL", "DON'T LOOK", "IT'S WATCHING", "MISSING", "HELP ME",
-    "WHO ARE YOU", "UNKNOWN CODE", "INITIATING SEQUENCE", "NOT ALONE"
+    "ERROR", "NO SIGNAL", "HEROHIIHODISTETHTMNGASGG", "IT'S WATCHING", "MISSING", "HELP ME",
+    "WHO ARE YOU", "UNKNOWN CODE", "INITIATING SEQUENCE", "HEROHIIHODISTETHTMNGASGGHEROHIIHODISTETHTMNGASGG"
 ]
 SYMBOLS = ["∆", "Ω", "∑", "∂", "⊗", "Ξ", "☠", "✖", "ψ", "λ", "#@$!", "011001"]
 NOISES = ["whistle", "shout", "bang", "glitch", "metal scrape", "heartbeat"]
@@ -84,7 +84,7 @@ def generate_audio():
     
     for i in range(DURATION):
         freq = random.choice([220, 440, 880, 120, 666, 333])
-        volume = random.randint(4000, 12000)
+        volume = random.randint(5000, 15000)
         wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
         
         start = i * SAMPLE_RATE
