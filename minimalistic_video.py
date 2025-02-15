@@ -23,11 +23,11 @@ COLOR_SCHEMES = [
 
 # Expanding cryptic phrases and symbols
 WORDS = [
-    "ERROR", "NO SIGNAL", "HEROHIIHODISTETHTMNGASGG", "IT'S WATCHING", "MISSING", "HELP ME",
-    "WHO ARE YOU", "UNKNOWN CODE", "INITIATING SEQUENCE", "HEROHIIHODISTETHTMNGASGGHEROHIIHODISTETHTMNGASGG"
+    "ERROR", "NO SIGNAL", "DON'T LOOK", "IT'S WATCHING", "MISSING", "HELP ME",
+    "WHO ARE YOU", "UNKNOWN CODE", "INITIATING SEQUENCE", "NOT ALONE"
 ]
 SYMBOLS = ["∆", "Ω", "∑", "∂", "⊗", "Ξ", "☠", "✖", "ψ", "λ", "#@$!", "011001"]
-NOISES = ["whistle", "shout", "bang", "glitch", "metal scrape", "heartbeat"]
+NOISES = ["whistle", "shout", "bang", "glitch", "metal scrape", "heartbeat", "static", "distant scream", "radio interference"]
 
 # Initialize pygame mixer for eerie sound effects
 os.environ["SDL_AUDIODRIVER"] = "dummy"
@@ -83,19 +83,20 @@ def generate_audio():
     samples = np.zeros(SAMPLE_RATE * DURATION, dtype=np.int16)
     
     for i in range(DURATION):
-        freq = random.choice([220, 440, 880, 120, 666, 333])
-        volume = random.randint(5000, 15000)
+        freq = random.choice([120, 220, 440, 880, 666, 333, 159])
+        volume = random.randint(6000, 20000)
         wave_data = (volume * np.sin(2 * np.pi * np.arange(SAMPLE_RATE) * freq / SAMPLE_RATE)).astype(np.int16)
-        
         start = i * SAMPLE_RATE
         end = min(start + SAMPLE_RATE, len(samples))
         samples[start:end] = wave_data[:end - start]
 
-        # Add random unsettling noises
-        if random.random() > 0.5:
+        # Add prominent unsettling noises
+        if random.random() > 0.4:
+            noise_wave = np.random.randint(-16000, 16000, SAMPLE_RATE).astype(np.int16)
+            samples[start:end] = np.clip(samples[start:end] + noise_wave[:end - start], -32768, 32767)
             noise = random.choice(NOISES)
             print(f"Adding noise: {noise}")
-        
+    
     with wave.open("audio_temp.wav", "w") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
@@ -115,4 +116,3 @@ if __name__ == "__main__":
     generate_frames()
     generate_audio()
     combine_video_audio()
-
