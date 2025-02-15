@@ -23,17 +23,18 @@ COLOR_SCHEMES = [
 
 # Expanding cryptic phrases and symbols
 WORDS = [
-    "ERROR", "NO SIGNAL", "OEOOEWEUELDEUAOOHAHEHOISRATEENLHOOOHTFJ", "IT'S WATCHING", "MISSING", "HELP ME",
+    "ERROR", "NO SIGNAL", "DON'T LOOK", "IT'S WATCHING", "MISSING", "HELP ME",
     "WHO ARE YOU", "UNKNOWN CODE", "INITIATING SEQUENCE", "NOT ALONE"
 ]
 SYMBOLS = ["∆", "Ω", "∑", "∂", "⊗", "Ξ", "☠", "✖", "ψ", "λ", "#@$!", "011001"]
+NOISES = ["whistle", "shout", "bang", "glitch", "metal scrape", "heartbeat"]
 
 # Initialize pygame mixer for eerie sound effects
 os.environ["SDL_AUDIODRIVER"] = "dummy"
 pygame.mixer.init(frequency=44100, size=-16, channels=1)
 
 def generate_frames():
-    """Generates eerie, unsettling video frames with glitches and distortions."""
+    """Generates eerie, unsettling video frames with glitches, distortions, and shapes."""
     print(f"Generating {DURATION}-second nightmare video...")
 
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
@@ -61,6 +62,15 @@ def generate_frames():
             y_pos = random.randint(0, HEIGHT - 15)
             frame[y_pos:y_pos + 5, :] = frame[y_pos + 10:y_pos + 15, :]
 
+        # Add eerie shapes
+        if random.random() > 0.5:
+            shape_type = random.choice(["circle", "rectangle"])
+            color = (random.randint(100, 255), random.randint(0, 255), random.randint(0, 255))
+            if shape_type == "circle":
+                cv2.circle(frame, (random.randint(50, WIDTH - 50), random.randint(50, HEIGHT - 50)), random.randint(20, 100), color, -1)
+            else:
+                cv2.rectangle(frame, (random.randint(20, WIDTH - 100), random.randint(20, HEIGHT - 100)), (random.randint(100, WIDTH - 20), random.randint(100, HEIGHT - 20)), color, -1)
+        
         # Cryptic text overlay
         while True:
             text = random.choice(WORDS) + " " + random.choice(SYMBOLS)
@@ -89,7 +99,7 @@ def generate_frames():
     print("Video generation complete.")
 
 def generate_audio():
-    """Generates eerie, unsettling soundscapes."""
+    """Generates eerie, unsettling soundscapes with random noises."""
     SAMPLE_RATE = 44100
     samples = np.zeros(SAMPLE_RATE * DURATION, dtype=np.int16)
     
@@ -109,13 +119,16 @@ def generate_audio():
         end = min(start + SAMPLE_RATE, len(samples))
         samples[start:end] = wave_data[:end - start]
 
-        # Random silent moments or distortions
+        # Add random unsettling noises
+        if random.random() > 0.5:
+            noise = random.choice(NOISES)
+            print(f"Adding noise: {noise}")
+        
         if random.random() > 0.7:
             samples[start:start + SAMPLE_RATE // 4] = 0  # Silence
         if random.random() > 0.6:
             samples[start:start + SAMPLE_RATE // 5] *= -1  # Inverted sound
 
-    # Save as WAV
     with wave.open("audio_temp.wav", "w") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
@@ -123,13 +136,6 @@ def generate_audio():
         wf.writeframes(samples.tobytes())
 
     print("Audio generation complete.")
-
-def combine_video_audio():
-    """Combines video and audio into a final mp4 file."""
-    os.system(f"ffmpeg -y -i video_temp.mp4 -i audio_temp.wav -c:v copy -c:a aac -strict experimental {OUTPUT_FILE}")
-    os.remove("video_temp.mp4")
-    os.remove("audio_temp.wav")
-    print(f"Final nightmare video saved as {OUTPUT_FILE}")
 
 if __name__ == "__main__":
     generate_frames()
