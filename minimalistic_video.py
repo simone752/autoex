@@ -23,8 +23,7 @@ COLOR_SCHEMES = [
 
 # Expanding cryptic phrases and symbols
 WORDS = [
-    "ERROR", "NO SIGNAL", "DON'T LOOK", "IT'S WATCHING", "MISSING", "HELP ME",
-    "WHO ARE YOU", "UNKNOWN CODE", "INITIATING SEQUENCE", "NOT ALONE"
+    "GHSAT"
 ]
 SYMBOLS = ["∆", "Ω", "∑", "∂", "⊗", "Ξ", "☠", "✖", "ψ", "λ", "#@$!", "011001"]
 NOISES = ["whistle", "shout", "bang", "glitch", "metal scrape", "heartbeat", "static", "distant scream", "radio interference"]
