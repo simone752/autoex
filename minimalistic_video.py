@@ -13,7 +13,7 @@ import noise # pip install noise
 WIDTH, HEIGHT = 640, 480
 MIN_DURATION, MAX_DURATION = 15, 35 # Increased duration range
 MIN_FPS, MAX_FPS = 4, 10 # Lower FPS range for jerkier feel
-OUTPUT_FILE = f"mind_alter_{int(time.time())}.mp4" # Unique filename each time
+OUTPUT_FILE = "extreme_video.mp4"
 
 # --- Thematic Elements ---
 THEMES = {
