@@ -1,6 +1,5 @@
 numpy
 opencv-python
 pygame
-ffmpeg-python
-pillow
-
+noise
+pillow  # Keep if you might add image loading later, otherwise optional
