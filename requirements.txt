@@ -2,4 +2,4 @@ numpy
 opencv-python
 pygame
 noise
-pillow  # Keep if you might add image loading later, otherwise optional
+scipy
