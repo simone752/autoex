@@ -23,7 +23,7 @@ WIDTH, HEIGHT = 1280, 720 # Increased resolution for better quality
 MIN_DURATION, MAX_DURATION = 15, 40 # Slightly shorter range, focus on impact
 # << INCREASED FPS RANGE >>
 MIN_FPS, MAX_FPS = 15, 30 # Higher FPS for smoother motion, but still allowing some glitchiness
-OUTPUT_FILE = "avant_garde_output.mp4"
+OUTPUT_FILE = "extreme_video.mp4"
 HIGH_FREQ_CUTOFF = 22000 # Allow slightly higher frequencies
 LOW_FREQ_CUTOFF = 18      # Allow slightly lower frequencies
 SAMPLE_RATE = 44100
