@@ -40,7 +40,7 @@ def zalgo_text(text_input):
     """Applies combining diacritical marks randomly to text."""
     text = str(text_input) # Ensure input is a string
     # Expanded Zalgo characters for more visual chaos
-    zalgo_ ऊपर = [chr(i) for i in range(0x0300, 0x036F + 1)]
+    zalgo_ b = [chr(i) for i in range(0x0300, 0x036F + 1)]
     zalgo_down = [chr(i) for i in range(0x0300, 0x036F + 1)] # Can reuse or use different ranges
     zalgo_mid = [chr(i) for i in range(0x0300, 0x036F + 1)]
     all_zalgo = zalgo_ ऊपर + zalgo_down + zalgo_mid
