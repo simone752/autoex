@@ -43,7 +43,7 @@ def zalgo_text(text_input):
     zalgo_b = [chr(i) for i in range(0x0300, 0x036F + 1)]
     zalgo_down = [chr(i) for i in range(0x0300, 0x036F + 1)] # Can reuse or use different ranges
     zalgo_mid = [chr(i) for i in range(0x0300, 0x036F + 1)]
-    all_zalgo = zalgo_ ऊपर + zalgo_down + zalgo_mid
+    all_zalgo = zalgo_b + zalgo_down + zalgo_mid
     if not all_zalgo: return text # Should not happen
 
     output = ""
