@@ -3,3 +3,5 @@ opencv-python
 pygame
 noise
 scipy
+qrcode[pil]
+Pillow
