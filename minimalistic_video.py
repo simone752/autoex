@@ -20,7 +20,7 @@ AUDIO_DURATION = DURATION
 # Output
 VIDEO_FILENAME = "output_glitch.mp4"
 AUDIO_FILENAME = "temp_audio.wav"
-FINAL_OUTPUT = "final_output.mp4"
+FINAL_OUTPUT = "extreme_video.mp4"
 
 # Utilities
 def make_text_frame(text, frame_num):
