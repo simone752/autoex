@@ -41,7 +41,7 @@ def glitch_frame(frame):
 # Video Generation
 out = cv2.VideoWriter(VIDEO_FILENAME, cv2.VideoWriter_fourcc(*'mp4v'), FPS, (WIDTH, HEIGHT))
 for i in range(FRAMES):
-    text = random.choice(["GLITCH", "SIGNAL", "CORRUPT", "VOID"])
+    text = random.choice(["YOU", "WONT", "GET", "WHAT", "YOU", "WANT", "ABRAXAS", "SALIS", "GET", "SATURNALIA"])
     frame = make_text_frame(text, i)
     frame = glitch_frame(frame)
     out.write(frame)
