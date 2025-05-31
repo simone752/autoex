@@ -37,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: extreme_video
-          path: extreme_video.mp4
+          path: final_extreme_video.mp4
