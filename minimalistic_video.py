@@ -1077,7 +1077,7 @@ def generate_video():
     print(f"Generating {actual_duration:.1f}s audio, Theme: {theme_name}...")
     audio_temp_file = generate_audio_enhanced(actual_duration_samples, actual_fps, current_theme_data, main_intensity_func, {}) 
 
-    final_output_file = f"{OUTPUT_FILE}"
+    final_output_file = f"final_{OUTPUT_FILE}"
     if audio_temp_file and os.path.exists(OUTPUT_FILE) and os.path.exists(audio_temp_file): 
         ffmpeg_command = [
             'ffmpeg', '-y', 
@@ -1129,6 +1129,23 @@ if __name__ == '__main__':
         print("Please install FFmpeg and add it to your PATH to combine them automatically.")
 
     generate_video()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
