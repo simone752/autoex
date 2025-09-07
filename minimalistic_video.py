@@ -299,6 +299,43 @@ def generate_granular_cloud(duration_samples, vol, intensity=1.0):
     if max_val > 0: output /= max_val
     return (output * vol).astype(np.float32)
     
+def generate_shepard_risset(duration_samples, vol, intensity=1.0):
+    """Generates an unsettling, continuously rising/falling auditory illusion."""
+    if duration_samples <= 0:
+        return np.array([], dtype=np.float32)
+
+    t = np.linspace(0, duration_samples / SAMPLE_RATE, duration_samples, endpoint=False)
+    
+    # Parameters for the illusion
+    num_octaves = 6
+    num_tones = 12  # Number of simultaneous sine waves
+    base_freq = 40.0
+    
+    # Intensity controls the speed of the glissando
+    rate = (2.0 ** (1.0 / 12.0)) ** (2.0 * intensity * random.choice([-1, 1]))
+    
+    final_wave = np.zeros(duration_samples)
+
+    for i in range(num_tones):
+        # Initial frequency for each tone, spaced out
+        initial_freq = base_freq * (2.0 ** (i * num_octaves / num_tones))
+        
+        # Exponentially rising frequency that wraps around
+        freq = initial_freq * (rate ** t)
+        freq = base_freq * (2.0 ** (np.log2(freq / base_freq) % num_octaves))
+
+        # Amplitude envelope: tones fade in as they enter the range and fade out as they leave
+        amplitude = np.sin(np.pi * np.log2(freq / base_freq) / num_octaves) ** 2
+        
+        final_wave += np.sin(2 * np.pi * freq * t) * amplitude
+
+    # Normalize and apply volume
+    max_val = np.max(np.abs(final_wave))
+    if max_val > 1e-6:
+        final_wave /= max_val
+        
+    return (final_wave * vol).astype(np.float32)
+    
 # Ported audio filters
 def apply_distortion(data, intensity=1.0):
     factor = 1.5 + 8.5 * intensity
