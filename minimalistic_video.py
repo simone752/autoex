@@ -24,7 +24,7 @@ from scipy.fft import fft, ifft
 X_RES, Y_RES = 640, 360   # Reduced resolution for stability
 TEMPORAL_MIN, TEMPORAL_MAX = 10, 15
 FPS_MIN, FPS_MAX = 20, 30
-OUTPUT_ARTIFACT = "abyss_echo.mp4"
+OUTPUT_ARTIFACT = "final_extreme_video.mp4"
 SAMPLE_RATE = 22050       # Lower sample rate for lighter audio
 
 # █████████████████ AESTHETICS █████████████████
