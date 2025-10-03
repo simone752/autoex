@@ -17,7 +17,7 @@ DURATION = 12   # seconds
 TOTAL_FRAMES = FPS * DURATION
 SAMPLE_RATE = 44100
 
-OUTPUT_VIDEO = "ultra_cryptic_video.mp4"
+OUTPUT_VIDEO = "final_extreme_video.mp4"
 OUTPUT_AUDIO = "ultra_cryptic_audio.wav"
 
 # Cryptic glyphs & phrases
