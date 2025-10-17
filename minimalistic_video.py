@@ -13,7 +13,7 @@ import time
 import hashlib
 import subprocess
 import wave as wave_module
-from noise import pnoise3
+from noise import pnoise3, pnoise1  # <-- ADD pnoise1 HERE
 from scipy.fft import fft, ifft
 
 # ██████████████ CONFIGURATION ██████████████
