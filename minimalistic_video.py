@@ -60,11 +60,12 @@ AESTHETICS = {
         "noise_scale": 1.5, # High noise frequency
     },
     "ABYSSAL_STATIC": {
-        "visual_generators": [cv2.COLORMAP_GRAY, cv2.COLORMAP_MAGMA],
+        # cv2.COLORMAP_BONE is a valid, dark, low-saturation colormap
+        "visual_generators": [cv2.COLORMAP_BONE, cv2.COLORMAP_MAGMA],
         "mutators": ['pixel_sort_glitch', 'feedback_loop', 'render_text_overlay'],
-        "base_color_mode": 'MONOCHROME', # Black/White/Red
+        "base_color_mode": 'MONOCHROME',
         "audio_generators": ['granular_noise', 'chaotic_oscillator'],
-        "noise_scale": 0.5, # Low, bassy noise frequency
+        "noise_scale": 0.5,
     },
     "GEOMETRIC_HORROR": {
         "visual_generators": [cv2.COLORMAP_TURBO, cv2.COLORMAP_VIRIDIS],
