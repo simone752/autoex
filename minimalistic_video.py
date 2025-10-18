@@ -210,7 +210,7 @@ y = np.arange(IH, dtype=np.float32)
 xx, yy = np.meshgrid(x, y)
 vectorized_pnoise3 = np.vectorize(pnoise3)
 
-def fractal_noise_layer(t, scale=0.03, octaves=5):
+def fractal_noise(t, scale=0.03, octaves=5):
     """Vectorized Perlin noise."""
     mat = vectorized_pnoise3(xx * scale, yy * scale, np.full((IH, IW), t), octaves=octaves)
     mat = cv2.normalize(mat, None, 0, 255, cv2.NORM_MINMAX)
