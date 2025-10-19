@@ -131,13 +131,41 @@ def audio_spike(vol=1.0):
 
 # (Other audio gens from previous version)
 def chaotic_oscillator(n, vol=0.5):
-    if n <= 0: return np.array([], dtype=np.float32); t = np.linspace(0, n / SAMPLE_RATE, n, endpoint=False); x = np.zeros(n); x[0] = random.random(); r = 3.999; 
-    for i in range(1, n): x[i] = r * x[i-1] * (1 - x[i-1]); base_freq = random.uniform(500, 2000); sig = np.sin(2 * np.pi * base_freq * t * (1 + x * 0.1)); return (sig * vol).astype(np.float32)
+    if n <= 0: 
+        return np.array([], dtype=np.float32)
+        
+    t = np.linspace(0, n / SAMPLE_RATE, n, endpoint=False)
+    x = np.zeros(n); x[0] = random.random(); r = 3.999
+    
+    for i in range(1, n): 
+        x[i] = r * x[i-1] * (1 - x[i-1])
+        
+    base_freq = random.uniform(500, 2000)
+    sig = np.sin(2 * np.pi * base_freq * t * (1 + x * 0.1))
+    return (sig * vol).astype(np.float32)
 def generate_shepard_risset(n, vol=0.4):
-    if n <= 0: return np.array([], dtype=np.float32); t = np.linspace(0, n / SAMPLE_RATE, n, endpoint=False); num_octaves = 6; num_tones = 10; base_freq = 40.0; rate = (2.0 ** (1.0 / 12.0)) ** (3.0 * random.choice([-1, 1])); final_wave = np.zeros(n); 
-    for i in range(num_tones): initial_freq = base_freq * (2.0 ** (i * num_octaves / num_tones)); freq = initial_freq * (rate ** t); freq = base_freq * (2.0 ** (np.log2(freq / base_freq) % num_octaves)); amplitude = np.sin(np.pi * np.log2(freq / base_freq) / num_octaves) ** 2; final_wave += np.sin(2 * np.pi * freq * t) * amplitude; 
-    mx = np.max(np.abs(final_wave)); 
-    if mx > 1e-6: final_wave /= mx; 
+    if n <= 0: 
+        return np.array([], dtype=np.float32)
+    
+    # Define variables AFTER the guard clause
+    t = np.linspace(0, n / SAMPLE_RATE, n, endpoint=False)
+    num_octaves = 6
+    num_tones = 10
+    base_freq = 40.0
+    rate = (2.0 ** (1.0 / 12.0)) ** (3.0 * random.choice([-1, 1]))
+    final_wave = np.zeros(n)
+    
+    for i in range(num_tones): 
+        initial_freq = base_freq * (2.0 ** (i * num_octaves / num_tones))
+        freq = initial_freq * (rate ** t)
+        freq = base_freq * (2.0 ** (np.log2(freq / base_freq) % num_octaves))
+        amplitude = np.sin(np.pi * np.log2(freq / base_freq) / num_octaves) ** 2
+        final_wave += np.sin(2 * np.pi * freq * t) * amplitude
+    
+    mx = np.max(np.abs(final_wave))
+    if mx > 1e-6: 
+        final_wave /= mx
+    
     return (final_wave * vol).astype(np.float32)
 
 def compose_audio(control_vector):
